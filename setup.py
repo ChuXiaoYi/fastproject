@@ -18,7 +18,11 @@ setup(
     entry_points={
         "console_scripts": ['cfastproject = fastproject.main:main']
     },
-    install_requires=[],
+    install_requires=[
+        "django", "fastapi", "gcp_mixed_logging", "asgi_request_id",
+        "uvicorn", "google-cloud-secret-manager", "pandas",
+        "peewee_async", "aiopg", "aiohttp"
+    ],
     url='https://github.com/ChuXiaoYi/fastproject',
     license='GNU General Public License v3.0',
     author='Xiaoyi Chu',
