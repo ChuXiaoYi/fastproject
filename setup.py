@@ -8,12 +8,13 @@
 # ---------------------------------------------
 from setuptools import setup, find_packages
 
-GFICLEE_VERSION = '2020.8.4.1'
+GFICLEE_VERSION = '2020.8.4.5'
 
 setup(
     name='cfastproject',
     version=GFICLEE_VERSION,
     packages=find_packages(),
+    include_package_data=True,
     entry_points={
         "console_scripts": ['cfastproject = fastproject.main:main']
     },
