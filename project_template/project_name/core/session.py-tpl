@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/12 2:00 下午
+#       @Author  : cxy =.=
+#       @File    : session.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+from peewee_async import Manager, PooledPostgresqlDatabase
+
+from {{camel_case_project_name}}.config import CONFIG
+
+PSQL_CONFIG = {
+    'user': CONFIG.DATABASE_USERNAME,
+    'password': CONFIG.DATABASE_PASSWORD,
+    'host': CONFIG.DATABASE_HOST
+}
+
+database = PooledPostgresqlDatabase(CONFIG.DATABASE_NAME, **PSQL_CONFIG)
+database.set_allow_sync(False)
+db_cursor = Manager(database=database)
+

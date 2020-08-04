@@ -1,0 +1,12 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/17 5:23 下午
+#       @Author  : cxy =.=
+#       @File    : api.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+from fastapi import APIRouter
+
+api_router = APIRouter()
+

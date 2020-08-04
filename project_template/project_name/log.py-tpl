@@ -1,0 +1,135 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/16 10:17 上午
+#       @Author  : cxy =.=
+#       @File    : log.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+import inspect
+import json
+import os
+import time
+import traceback
+import functools
+from typing import Any
+
+from asgi_request_id import get_request_id
+from gcp_mixed_logging import MixedLogging
+
+from {{camel_case_project_name}}.config import CONFIG
+
+
+class ComplexEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except Exception as e:
+            return str(obj)
+
+
+class CMixedLogging(MixedLogging):
+    def format(self, msg: Any, frame: inspect.FrameInfo) -> dict:
+        payload = {
+            "timestamp": int(time.time()),
+            "filename": frame.filename,
+            "function": frame.function,
+            "lineno": frame.lineno,
+            'request_id': get_request_id(),
+        }
+        if isinstance(msg, str):
+            payload["message"] = CMixedLogging.convert_res(msg)
+        elif isinstance(msg, dict):
+            if msg.get('params'):
+                msg['params'] = CMixedLogging.convert_res(msg['params'])
+            if msg.get('return'):
+                msg['return'] = CMixedLogging.convert_res(msg['return'])
+            payload.update(msg)
+        else:
+            payload["message"] = str(CMixedLogging.convert_res(msg))
+        return payload
+
+    @staticmethod
+    def convert_res(res):
+        if isinstance(res, tuple):
+            ret = json.loads(json.dumps(list(res), cls=ComplexEncoder))
+        elif isinstance(res, dict):
+            ret = json.loads(json.dumps(res, cls=ComplexEncoder))
+        else:
+            ret = res
+        if len(str(ret).encode('utf8')) / 1024 >= 200.0:
+            ret = str(ret).encode('utf8')[:50].decode('utf8')
+        return ret
+
+    @staticmethod
+    def logger(func):
+
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            argspec = inspect.getfullargspec(func)
+            args_param = {k: v for k, v in zip(argspec.args, list(args))} if argspec.args else {}
+            params = {
+                'arg': json.loads(json.dumps(args_param, cls=ComplexEncoder)),
+                'kwargs': json.loads(json.dumps(kwargs, cls=ComplexEncoder))}
+            log.debug(msg={
+                "function": func.__name__,
+                "filename": inspect.getfile(func),
+                'params': params})
+
+            try:
+                res = await func(*args, **kwargs)
+                log.debug(msg={
+                    "function": func.__name__,
+                    "filename": inspect.getfile(func),
+                    'return': res
+                })
+                return res
+            except Exception as e:
+                log.error({
+                    'message': traceback.format_exc(),
+                    "function": func.__name__,
+                    "filename": inspect.getfile(func),
+                })
+                raise
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            argspec = inspect.getfullargspec(func)
+            args_param = {k: v for k, v in zip(argspec.args, list(args))} if argspec.args else {}
+            params = {
+                'arg': json.loads(json.dumps(args_param, cls=ComplexEncoder)),
+                'kwargs': json.loads(json.dumps(kwargs, cls=ComplexEncoder))}
+            log.debug(msg={
+                "function": func.__name__,
+                "filename": inspect.getfile(func),
+                'params': params})
+            try:
+                res = func(*args, **kwargs)
+                log.debug(msg={
+                    "function": func.__name__,
+                    "filename": inspect.getfile(func),
+                    'return': res
+                })
+                return res
+            except Exception as e:
+                log.error({
+                    'message': traceback.format_exc(),
+                    "function": func.__name__,
+                    "filename": inspect.getfile(func),
+                })
+                raise
+
+        if inspect.iscoroutinefunction(func):
+            return async_wrapper
+        elif inspect.isgeneratorfunction(func):
+            # todo
+            return wrapper
+        else:
+            return wrapper
+
+
+log = CMixedLogging(
+    '{{camel_case_project_name}}', stage=os.environ['STAGE'],
+    fluent_host=CONFIG.FLUENT_HOST, fluent_port=24224,
+    project='papaya-crm'
+)

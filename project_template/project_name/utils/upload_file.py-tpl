@@ -1,0 +1,25 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/7/15 11:36 上午
+#       @Author  : cxy =.=
+#       @File    : upload_file.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+from google.cloud import storage
+
+from {{ camel_case_project_name }}.log import log
+
+@log.logger
+def upload_to_gcs(filename, image):
+    storage_client = storage.Client(project='papaya-crm')
+    bucket = storage_client.bucket("crm-static")
+    blob = bucket.blob(filename)
+    blob.upload_from_string(data=image)
+    url = blob.public_url
+    log.info(url)
+    return url
+
+
+if __name__ == '__main__':
+    upload_to_gcs('test/test', 'ddd')

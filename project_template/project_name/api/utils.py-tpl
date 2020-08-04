@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/7/6 11:17 上午
+#       @Author  : cxy =.=
+#       @File    : utils.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+from starlette.requests import Request
+
+
+def get_db(request: Request):
+    return request.state.db

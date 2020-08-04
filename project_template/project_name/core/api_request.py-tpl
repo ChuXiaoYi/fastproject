@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/16 10:34 上午
+#       @Author  : cxy =.=
+#       @File    : api_request.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+import json
+import aiohttp
+import traceback
+from {{camel_case_project_name}}.log import log
+
+
+class ApiRequest(object):
+    def __init__(self, url):
+        self.url = url
+
+    @log.logger
+    async def get(self, params=None, mimetype=None):
+        try:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
+                async with session.get(self.url, params=params, timeout=20) as response:
+                    if mimetype == 'image':
+                        resp = await response.read()
+                    else:
+                        resp = await response.json()
+                    content_type = response.content_type
+                    status_code = response.status
+                    log.info(f"url: {self.url}")
+                    log.info(f"params: {params}")
+                    log.info(f"content_type: {content_type}")
+                    log.info(f"response: {'' if mimetype == 'image' else resp}")
+                    return status_code, resp
+        except TimeoutError:
+            log.error(traceback.format_exc())
+            return 500, {'data': None, 'msg': 'timeout'}
+        except Exception as e:
+            log.error(traceback.format_exc())
+            return 500, {'data': None, 'msg': e.args}
+
+    @log.logger
+    async def post(self, params=None, data: dict = None):
+        try:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
+                async with session.post(self.url, data=json.dumps(data), params=params, timeout=20) as response:
+                    resp = await response.json()
+                    status_code = response.status
+                    log.info(f"url: {self.url}")
+                    log.info(f"params: {data}")
+                    log.info(f"response: {resp}")
+                    return status_code, resp
+        except Exception as e:
+            log.error(traceback.format_exc())
+            return 500, {'data': None, 'msg': e.args}

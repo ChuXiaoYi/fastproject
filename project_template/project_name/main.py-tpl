@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/10 3:12 下午
+#       @Author  : cxy =.=
+#       @File    : main.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+import traceback
+import uvicorn
+from fastapi import FastAPI
+from starlette.requests import Request
+from starlette.middleware.cors import CORSMiddleware
+from asgi_request_id import RequestIDMiddleware, get_request_id
+
+from {{camel_case_project_name}}.log import log
+from {{camel_case_project_name}}.api.api import api_router
+
+from {{camel_case_project_name}}.core.session import db_cursor
+
+{{camel_case_project_name}} = FastAPI(title="project_name1", openapi_url="/api/v1/openapi.json")
+{{camel_case_project_name}}.include_router(api_router, prefix="/api/v1")
+
+{{camel_case_project_name}}.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+{{camel_case_project_name}}.add_middleware(
+    RequestIDMiddleware,
+    incoming_request_id_header="x-amzn-trace-id",
+    prefix="project_name1-",
+)
+
+
+@{{camel_case_project_name}}.get('/healthy')
+def health():
+    """用于检查服务是否正常
+    """
+    return "<project_name1> hi, i'm health~"
+
+
+@{{camel_case_project_name}}.middleware("http")
+async def db_session_middleware(request: Request, call_next):
+    request.state.db = db_cursor
+    response = await call_next(request)
+    return response
+
+
+if __name__ == '__main__':
+    uvicorn.run({{camel_case_project_name}}, host="0.0.0.0", port=8001, debug=True)

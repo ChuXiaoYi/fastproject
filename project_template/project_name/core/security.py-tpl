@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/16 2:13 下午
+#       @Author  : cxy =.=
+#       @File    : security.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+from fastapi import Header
+
+
+def get_current_user():
+    """
+    todo 从请求头中拿到登陆信息，并通过数据中心拿到当前用户
+    :return:
+    """
+    user_id = 1
+    return user_id

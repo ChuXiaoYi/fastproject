@@ -1,0 +1,77 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------
+#       @Time    : 2020/6/11 4:13 下午
+#       @Author  : cxy =.=
+#       @File    : config.py
+#       @Software: PyCharm
+#       @Desc    :
+# ---------------------------------------------
+import os
+import ast
+from google.cloud import secretmanager
+
+
+class LocalConfig(object):
+    DATABASE_USERNAME = os.environ.get('DATABASE_USERNAME')
+    DATABASE_NAME = os.environ.get('DATABASE_NAME')
+    DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD')
+    DATABASE_HOST = os.environ.get('DATABASE_HOST')
+    DATACENTER_URL = "http://0.0.0.0:8003"
+    FLUENT_HOST = os.environ.get('FLUENT_HOST')
+    FB_ACCOUNT_CREATION_SCHEMA_NAME = os.environ.get('PUBLISHER_BALANCE_SCHEMA_NAME', 'public')
+    DATACENTER_SCHEMA_NAME = os.environ.get('DATACENTER_SCHEMA_NAME', 'public')
+
+
+class Config(object):
+    PROJECT_ID = '574231093410' if os.environ['STAGE'] == 'test' else '574231093410'
+    SECRET_ID = 'papaya{{camel_case_project_name}}-test' if os.environ['STAGE'] == 'test' else 'papaya{{camel_case_project_name}}-prod'
+    VERSION_ID = 'latest'
+
+
+def get_secret(project_id, secret_id, version_id):
+    """
+    获取配置
+    @param project_id:
+    @param secret_id:
+    @param version_id:
+    @return:
+    """
+    client = secretmanager.SecretManagerServiceClient()
+    name = client.secret_version_path(project_id, secret_id, version_id)
+    response = client.access_secret_version(name)
+    payload = ast.literal_eval(response.payload.data.decode('utf8'))
+    return payload
+
+
+def update_config(config_obj):
+    """
+    更新配置
+    @param config_obj:
+    @return:
+    """
+    config = get_secret(project_id=config_obj.PROJECT_ID,
+                        secret_id=config_obj.SECRET_ID,
+                        version_id=config_obj.VERSION_ID)
+    for key, values in config.items():
+        setattr(config_obj, key, values)
+
+
+def init_config():
+    """
+    根据环境初始化配置
+    @return: 配置实例
+    """
+    env = os.environ['STAGE']
+    if env == 'local':
+        config = LocalConfig()
+    else:
+        config = Config()
+        update_config(config)
+    print(f"加载{env}环境配置完成")
+    return config
+
+
+CONFIG = init_config()
+
+if __name__ == '__main__':
+    print(init_config())
