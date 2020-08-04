@@ -38,7 +38,7 @@ def execute(argv):
         'camel_case_project_name': camel_case_value,
     }, autoescape=False)
 
-    template_dir = os.path.join(fastproject.__path__[0], 'project_template')
+    template_dir = os.path.join(fastproject.__path__[0], 'fastproject', 'project_template')
     prefix_length = len(template_dir) + 1
     for root, dirs, files in os.walk(template_dir):
         print(root, dirs, files)
