@@ -8,14 +8,14 @@
 # ---------------------------------------------
 from setuptools import setup, find_packages
 
-GFICLEE_VERSION = '2020.08.04'
+GFICLEE_VERSION = '2020.8.4'
 
 setup(
-    name='CFPROJ',
+    name='cfastproject',
     version=GFICLEE_VERSION,
     packages=find_packages(),
     entry_points={
-        "console_scripts": ['CFPROJ = cfproj.command']
+        "console_scripts": ['cfastproject = fastproject.main:execute']
     },
     install_requires=[],
     url='https://github.com/ChuXiaoYi/fastproject',
