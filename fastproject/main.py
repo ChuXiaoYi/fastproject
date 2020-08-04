@@ -94,6 +94,9 @@ def execute(argv):
                 pass
 
 
-if __name__ == '__main__':
-    print(sys.argv)
+def main():
     execute(sys.argv)
+
+
+if __name__ == '__main__':
+    main()

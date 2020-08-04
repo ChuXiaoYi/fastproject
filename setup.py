@@ -15,7 +15,7 @@ setup(
     version=GFICLEE_VERSION,
     packages=find_packages(),
     entry_points={
-        "console_scripts": ['cfastproject = fastproject.main:execute']
+        "console_scripts": ['cfastproject = fastproject.main:main']
     },
     install_requires=[],
     url='https://github.com/ChuXiaoYi/fastproject',
